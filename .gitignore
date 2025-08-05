@@ -44,5 +44,5 @@ yarn-error.log*
 
 # idea files
 .idea
-# Ignore rust-service repository to keep it separate
-rust-service/
+
+target/
