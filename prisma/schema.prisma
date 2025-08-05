@@ -14,10 +14,23 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+// Models from README
+model Activity {
+  id        String   @id @default(cuid())
+  type      String
+  content   Json
+  aiSummary String?
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 model Resume {
-    id        Int      @id @default(autoincrement())
-    content   String   @db.Text
-    url       String?
+    id        String   @id @default(cuid())
+    content   Json
+    pdfUrl    String?
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
     userId    String
@@ -26,6 +39,7 @@ model Resume {
     @@index([userId])
 }
 
+
 // Necessary for Next auth
 model Account {
     id                       String  @id @default(cuid())
@@ -33,12 +47,12 @@ model Account {
     type                     String
     provider                 String
     providerAccountId        String
-    refresh_token            String? // @db.Text
-    access_token             String? // @db.Text
+    refresh_token            String?
+    access_token             String?
     expires_at               Int?
     token_type               String?
     scope                    String?
-    id_token                 String? // @db.Text
+    id_token                 String?
     session_state            String?
     user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
     refresh_token_expires_in Int?
@@ -60,9 +74,13 @@ model User {
     email         String?   @unique
     emailVerified DateTime?
     image         String?
+    githubId      String?   @unique
+
+    // Relations
     accounts      Account[]
     sessions      Session[]
     resumes       Resume[]
+    activities    Activity[]
 }
 
 model VerificationToken {
