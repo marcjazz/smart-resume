@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "next.config.js",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "AUTH_SECRET": "@AUTH_SECRET",
+    "AUTH_DISCORD_ID": "@AUTH_DISCORD_ID",
+    "AUTH_DISCORD_SECRET": "@AUTH_DISCORD_SECRET",
+    "AUTH_GITHUB_ID": "@AUTH_GITHUB_ID",
+    "AUTH_GITHUB_SECRET": "@AUTH_GITHUB_SECRET",
+    "DATABASE_URL": "@DATABASE_URL",
+    "AWS_ACCESS_KEY_ID": "@AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY": "@AWS_SECRET_ACCESS_KEY",
+    "AWS_S3_BUCKET_NAME": "@AWS_S3_BUCKET_NAME",
+    "AWS_REGION": "@AWS_REGION",
+    "GITHUB_TOKEN": "@GITHUB_TOKEN",
+    "NEXT_PUBLIC_AWS_S3_BUCKET_NAME": "@NEXT_PUBLIC_AWS_S3_BUCKET_NAME",
+    "NEXT_PUBLIC_AWS_REGION": "@NEXT_PUBLIC_AWS_REGION"
+  }
+}

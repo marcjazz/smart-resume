@@ -1,0 +1,278 @@
+# Self-Updating Tech Resume Website
+
+A **self-updating developer portfolio and resume system** that fetches your GitHub activity, summarizes it using AI, and automatically updates your resume in a professional tone. It supports PDF export, changelog generation, and GitHub OAuth login.
+
+---
+
+## ✅ Features
+- **GitHub OAuth Authentication** (via Auth.js)
+- **Fetch GitHub Activities** (commits, PRs, issues, repositories)
+- **AI-Powered Resume Updates** (OpenAI or local LLM)
+- **PDF Generation** (offloaded to S3 for storage)
+- **Next.js Frontend** for viewing and customizing resume
+- **Rust Backend API** for GitHub data sync, AI summarization, and PDF generation
+- **PostgreSQL Database** for persistence
+- **Amazon S3 Integration** for PDF storage
+- **Deployable on Vercel** (frontend + backend)
+
+---
+
+## ✅ Tech Stack
+- **Frontend**: Next.js 14 + App Router + DaisyUI(TailwindCSS)
+- **Authentication**: Auth.js (with GitHub OAuth)
+- **Backend**: Rust (Axum) deployed as Vercel serverless function
+- **Database**: PostgreSQL (Supabase or Neon recommended)
+- **AI API**: OpenAI Compatible
+- **Storage**: Amazon S3 (for PDFs)
+
+* **Next.js (T3 Stack)** handles:
+
+  * **Authentication** (Auth.js + GitHub OAuth)
+  * **Database** (Prisma + PostgreSQL)
+  * **UI** (Next.js + TailwindCSS + DaisyUI + theming)
+  * **tRPC API** for app logic
+  * **Resume Builder UI**
+  * **S3 Upload & Resume Management**
+* **Rust microservice** (serverless function or container) handles:
+
+  * **Heavy AI summarization logic** (optimized requests, batch processing)
+  * **PDF generation** (LaTeX-compatible output → compile → upload to S3)
+  * (Optional) **Resume changelog analysis** (GitHub commit parsing for changelogs)
+
+---
+
+## ✅ **High-Level Hybrid Architecture**
+
+```
++-------------------------+         +--------------------------------+
+| Next.js Frontend        |         | Rust Microservice             |
+| (T3 Stack on Vercel)    |         | (Serverless / Container)      |
+|--------------------------|         |--------------------------------|
+| - Auth.js (GitHub OAuth)|         | - AI Summarization (OpenAI)   |
+| - tRPC API              | <-----> | - PDF Generator (LaTeX)       |
+| - Prisma + Postgres     |         | - Changelog Processor         |
+| - Tailwind + DaisyUI    |         +--------------------------------+
+| - Upload to S3          |
++--------------------------+
+        |   |    |
+        |   |    +--------------------------------+
+        |   +-------------> PostgreSQL (Supabase) |
+        +------------------> AWS S3 (PDF Storage) |
+```
+
+---
+
+## ✅ **Detailed Plan**
+
+### **Step 1: Frontend & tRPC Setup**
+
+1. **Bootstrap T3 App**:
+
+   ```bash
+   npx create-t3-app@latest self-updating-resume
+   ```
+
+   Include:
+
+   * tRPC
+   * Prisma
+   * NextAuth
+   * TailwindCSS
+
+2. **Add DaisyUI**:
+
+   ```bash
+   npm install daisyui
+   ```
+
+   In `tailwind.config.ts`:
+
+   ```ts
+   module.exports = {
+     content: ["./src/**/*.{ts,tsx}"],
+     theme: {
+       extend: {},
+     },
+     plugins: [require("daisyui")],
+     daisyui: {
+       themes: [
+         {
+           mytheme: {
+             "primary": "#1e40af",
+             "secondary": "#9333ea",
+             "accent": "#f43f5e",
+             "neutral": "#111827",
+             "base-100": "#ffffff",
+           },
+         },
+       ],
+     },
+   };
+   ```
+
+3. **Create a Tailwind Preset** for **consistent design tokens**:
+
+   * Extract theme into `tailwind-preset.js` for reuse.
+   * Ensure **responsive and accessible** components.
+
+4. **Component Design Principles**:
+
+   * **Reusable**: e.g., `Card`, `Modal`, `Button`, `Table`, `SectionEditor`.
+   * **Composable**: Each component accepts props for content/variants.
+
+---
+
+### **Step 2: Auth & Database**
+
+* Use **NextAuth.js with GitHub Provider** for authentication.
+* Use **Prisma** to manage:
+
+  * `User`
+  * `Activity` (commits, issues, PRs)
+  * `Resume` (JSON structure, linked to user)
+* DB: **PostgreSQL on Supabase or Neon** for Vercel compatibility.
+
+**Example schema (`prisma/schema.prisma`):**
+
+```prisma
+model User {
+  id        String   @id @default(cuid())
+  githubId  String   @unique
+  email     String?
+  activities Activity[]
+  resumes    Resume[]
+}
+
+model Activity {
+  id         String   @id @default(cuid())
+  type       String
+  content    String
+  aiSummary  String?
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model Resume {
+  id          String   @id @default(cuid())
+  content     Json
+  pdfUrl      String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+}
+```
+
+---
+
+### **Step 3: tRPC API Design**
+
+* **Procedures**:
+
+  * `github.sync`: Fetch activities via GitHub API → store in DB.
+  * `resume.generate`: Send activities to Rust microservice for summarization.
+  * `resume.export`: Request PDF generation (Rust service) → upload to S3.
+  * `resume.get`: Fetch latest resume (JSON).
+  * `resume.history`: Fetch previous versions.
+
+---
+
+### **Step 4: Rust Microservice**
+
+* Deploy as:
+
+  * **Serverless function on Vercel (community Rust runtime)** OR
+  * **Container on Fly.io / AWS Lambda**
+* Responsibilities:
+
+  1. **Summarize activities**:
+
+     * Batch process using OpenAI API.
+     * Optimize prompts for professional tone.
+  2. **Generate LaTeX PDF**:
+
+     * Render resume in LaTeX template.
+     * Compile using `tectonic` (Rust LaTeX engine).
+     * Save PDF locally → upload to S3.
+  3. **Return signed S3 URL** to Next.js app.
+
+**Rust crates**:
+
+```toml
+[dependencies]
+axum = "0.7"
+serde = { version = "1", features = ["derive"] }
+reqwest = { version = "0.11", features = ["json"] }
+aws-sdk-s3 = "0.29"
+tokio = { version = "1", features = ["full"] }
+```
+
+---
+
+### **Step 5: AWS S3 Setup**
+
+* Create bucket `resume-pdf-bucket`.
+* Set **CORS** for Vercel domain.
+* Store PDFs as `userId/timestamp.pdf`.
+
+---
+
+### **Step 6: PDF Export (LaTeX-Compatible)**
+
+* **LaTeX template** stored in Rust microservice.
+* Use `tectonic` crate:
+
+```rust
+use std::process::Command;
+fn generate_pdf_from_latex(latex_content: &str, output: &str) {
+    std::fs::write("resume.tex", latex_content).unwrap();
+    Command::new("tectonic")
+        .arg("resume.tex")
+        .arg("--outdir")
+        .arg(output)
+        .output()
+        .unwrap();
+}
+```
+
+---
+
+### **Step 7: Tailwind Theming (Done Early)**
+
+* Use **DaisyUI custom theme**.
+* Define **CSS variables for resume branding**.
+* Support **dark mode + print mode (for PDF preview)**.
+
+---
+
+### **Step 8: Deployment**
+
+* **Next.js** on Vercel with all tRPC endpoints and UI.
+* **Rust service** as:
+
+  * Option 1: **Vercel serverless function** (simple, integrated).
+  * Option 2: **Separate container** (Fly.io, AWS Lambda) for more flexibility.
+* **DB**: Supabase or Neon.
+* **S3**: AWS.
+
+---
+
+## ✅ Development Workflow (Copilot-Friendly)
+
+1. **Start T3 stack project** with DaisyUI preset and theming done first.
+2. **Implement Auth.js (GitHub)**.
+3. **Add tRPC procedures for resume management**.
+4. **Integrate Prisma + Supabase for DB**.
+5. **Implement Rust microservice endpoints for AI + PDF**.
+6. **Connect tRPC → Rust via internal API call**.
+7. **Add S3 for PDF uploads**.
+8. **Polish UI with DaisyUI reusable components**.
+9. **Deploy Next.js + Rust services**.
+
+---
+
+## ✅ Next Steps
+
+Do you want me to:
+
+✔ Generate **Mermaid diagram for this hybrid architecture**,
+✔ Write **full README for hybrid setup with step-by-step commands**,
+✔ Or **start with folder structure for both Next.js and Rust projects** so Copilot can build on it?
