@@ -1,0 +1,70 @@
+openapi: 3.1.0
+info:
+  title: Smart Resume Summarization Service
+  version: 1.0.0
+
+paths:
+  /summarize:
+    post:
+      summary: Summarize GitHub commit messages via OpenAI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SummarizeRequest'
+      responses:
+        '200':
+          description: Successful summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummarizeResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '502':
+          description: Bad gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    SummarizeRequest:
+      type: object
+      required:
+        - github_username
+      properties:
+        github_username:
+          type: string
+        openapi_base_url:
+          type: string
+        model:
+          type: string
+        endpoint_type:
+          type: string
+          enum:
+            - completions
+            - embeddings
+    SummarizeResponse:
+      type: object
+      properties:
+        summary:
+          type: string
+        endpoint_used:
+          type: string
+      required:
+        - summary
+        - endpoint_used
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
