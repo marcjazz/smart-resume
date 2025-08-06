@@ -31,15 +31,6 @@ export default function ResumesPage() {
     },
   });
 
-  const exportPdf = api.resume.export.useMutation({
-    onSuccess: (updatedResume) => {
-      alert(`PDF exported successfully! URL: ${updatedResume.pdfUrl ?? 'N/A'}`);
-      void utils.resume.getAll.invalidate();
-    },
-    onError: (error) => {
-      alert(`Error exporting PDF: ${error.message}`);
-    },
-  });
 
   return (
     <div className="p-8">
@@ -75,23 +66,6 @@ export default function ResumesPage() {
                     {(r.content as { summary?: string })?.summary ?? "No summary."}
                   </p>
                   <div className="card-actions justify-end">
-                    {r.pdfUrl ? (
-                      <a
-                        href={r.pdfUrl}
-                        target="_blank"
-                        className="btn btn-secondary"
-                      >
-                        View PDF
-                      </a>
-                    ) : (
-                      <button
-                        onClick={() => exportPdf.mutate({ id: r.id })}
-                        disabled={exportPdf.isPending && exportPdf.variables?.id === r.id}
-                        className="btn btn-accent"
-                      >
-                        {(exportPdf.isPending && exportPdf.variables?.id === r.id) ? "Exporting..." : "Export to PDF"}
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>

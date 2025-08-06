@@ -30,8 +30,7 @@ export const resumeRouter = createTRPCRouter({
       });
     }
 
-    // TODO: Move this URL to environment variables
-    const rustServiceUrl = "http://127.0.0.1:3000/summarize";
+    const rustServiceUrl = "/api/summarize";
     const response = await fetch(rustServiceUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -63,48 +62,6 @@ export const resumeRouter = createTRPCRouter({
 
     return newResume;
   }),
-
-  // Procedure to export a resume to PDF
-  export: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const { session, db } = ctx;
-      const userId = session.user.id;
-
-      const resume = await db.resume.findUnique({
-        where: { id: input.id, userId },
-      });
-
-      if (!resume) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Resume not found." });
-      }
-
-      const content = ResumeContentSchema.parse(resume.content);
-
-      // TODO: Move this URL to environment variables
-      const rustServiceUrl = "http://127.0.0.1:3000/export-pdf";
-      const response = await fetch(rustServiceUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ summary: content.summary }),
-      });
-
-      if (!response.ok) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to export PDF from service: ${await response.text()}`,
-        });
-      }
-
-      const exportResponse = (await response.json()) as { pdf_url: string };
-
-      const updatedResume = await db.resume.update({
-        where: { id: input.id },
-        data: { pdfUrl: exportResponse.pdf_url },
-      });
-
-      return updatedResume;
-    }),
 
   create: protectedProcedure
     .input(z.object({ content: ResumeContentSchema }))

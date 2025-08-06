@@ -1,7 +1,7 @@
 use crate::{
     config::Config,
     error::AppError,
-    models::{Commit, PushEventPayload, SummarizeRequest, SummarizeResponse},
+    models::{PushEventPayload, SummarizeRequest, SummarizeResponse},
 };
 use reqwest::Client;
 use serde_json::Value;
