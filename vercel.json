@@ -4,8 +4,17 @@
     {
       "src": "next.config.js",
       "use": "@vercel/next"
+    },
+    {
+      "src": "api/**/*.rs",
+      "use": "vercel-rust@4.0.9"
     }
   ],
+  "functions": {
+    "api/**/*.rs": {
+      "runtime": "vercel-rust@4.0.9"
+    }
+  },
   "env": {
     "AUTH_SECRET": "@AUTH_SECRET",
     "AUTH_DISCORD_ID": "@AUTH_DISCORD_ID",

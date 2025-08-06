@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  rust-service:
+    build:
+      context: ./rust-service
+      dockerfile: Dockerfile
+    image: rust-service:latest
+    container_name: rust-service
+    ports:
+      - "3000:3000"

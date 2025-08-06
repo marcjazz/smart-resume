@@ -1,0 +1,28 @@
+[package]
+name = "my-rust-service"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+axum = "0.8.4"
+async-openai = "0.29.0"
+dotenvy = "0.15"
+aws-config = "1.1.7"
+aws-sdk-s3 = "1.101.0"
+anyhow = "1.0"
+mime = "0.3"
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "2.0.12"
+vercel_runtime = "1.0"
+
+[lib]
+name = "my_rust_service"
+path = "src-rs/lib.rs"
+
+[[bin]]
+name = "summarize"
+path = "api/summarize.rs"
