@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { getUploadUrl } from "&/server/api/utils/s3";
 import { createTRPCRouter, protectedProcedure } from "&/server/api/trpc";
+import { getUploadUrl } from "&/server/api/utils/s3";
+import { type Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-import { Prisma } from "@prisma/client";
+import { z } from "zod";
 
 // Define a schema for the JSON content of a resume
 const ResumeContentSchema = z.object({
@@ -16,7 +16,8 @@ export const resumeRouter = createTRPCRouter({
     const { session, db } = ctx;
     const userId = session.user.id;
 
-    const activities = await db.activity.findMany({
+    const activities =
+      await db.activity.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
       take: 50,
@@ -36,8 +37,8 @@ export const resumeRouter = createTRPCRouter({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         activities: activities.map((a) => ({
-          r#type: a.type,
-          content: a.content,
+          type: a.type,
+          content: typeof a.content === 'string' ? a.content : JSON.stringify(a.content),
         })),
       }),
     });

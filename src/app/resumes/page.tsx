@@ -24,7 +24,7 @@ export default function ResumesPage() {
   const generateResume = api.resume.generate.useMutation({
     onSuccess: () => {
       alert("New resume generated successfully!");
-      utils.resume.getAll.invalidate();
+      void utils.resume.getAll.invalidate();
     },
     onError: (error) => {
       alert(`Error generating resume: ${error.message}`);
@@ -34,7 +34,7 @@ export default function ResumesPage() {
   const exportPdf = api.resume.export.useMutation({
     onSuccess: (updatedResume) => {
       alert(`PDF exported successfully! URL: ${updatedResume.pdfUrl ?? 'N/A'}`);
-      utils.resume.getAll.invalidate();
+      void utils.resume.getAll.invalidate();
     },
     onError: (error) => {
       alert(`Error exporting PDF: ${error.message}`);

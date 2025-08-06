@@ -61,7 +61,7 @@ export const githubRouter = createTRPCRouter({
       });
     }
 
-    const eventsJson = await response.json();
+    const eventsJson: unknown = await response.json();
     const events = GitHubEventsSchema.parse(eventsJson);
 
     // 3. Save events to the database
